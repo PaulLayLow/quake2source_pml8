@@ -381,6 +381,9 @@ static void Grenade_Explode (edict_t *ent)
 	vec3_t		origin, dir, v; // dir added
 	int			mod;
 	int			i;
+	vec3_t	start;
+	vec3_t	f, r, u;
+
 	if (ent->owner->client)
 		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
 
@@ -435,13 +438,18 @@ static void Grenade_Explode (edict_t *ent)
 	dir[1] = crandom();
 	dir[2] = crandom();
 
-	v[0] = crandom();
-	v[1] = crandom();
-	v[2] = crandom();
+	AngleVectors (ent->s.angles, f, r, u);
+	VectorMA (ent->s.origin, ent->move_origin[0], f, start);
+	VectorMA (start, ent->move_origin[1], r, start);
+	VectorMA (start, ent->move_origin[2], u, start);
+
+	//start[0] = crandom();
+	//start[1] = crandom();
+	//start[2] = crandom();
 
 	for (i = 0; i < 4; i++){
 		//ent->owner;
-		fire_rocket (ent->owner,  v,  dir, 10, 5, 2.0, 10);
+		fire_rocket (ent->owner,  start,  dir, 10, 5, 2.0, 10);
 	}
 	//*/
 	G_FreeEdict (ent);
