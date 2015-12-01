@@ -1033,6 +1033,8 @@ struct edict_s
 	float		fly_sound_debounce_time;	//move to clientinfo
 	float		last_move_time;
 
+	//github
+	int			github;
 	int			health;
 	int			max_health;
 	int			gib_health;
@@ -1091,5 +1093,9 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+
+	//crazy Jump
+	int jetpack;
+	float fuel;
 };
 

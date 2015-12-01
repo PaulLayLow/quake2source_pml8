@@ -1588,6 +1588,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	} else {
 
+		if (ent->jetpack)
+		{
+			ent->jetpack = 0;
+			ent->velocity[2] += 300;
+			
+		}
 		// set up for pmove
 		memset (&pm, 0, sizeof(pm));
 

@@ -489,6 +489,12 @@ void G_SetStats (edict_t *ent)
 	//
 	ent->client->ps.stats[STAT_FRAGS] = ent->client->resp.score;
 
+
+	//
+	// JetPack
+	//
+	ent->client->ps.stats[STAT_JET] = 100;
+
 	//
 	// help icon / current weapon if not shown
 	//

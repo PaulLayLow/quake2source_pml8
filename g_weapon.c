@@ -434,22 +434,22 @@ static void Grenade_Explode (edict_t *ent)
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
 	///*
 	// Class Mod
-	dir[0] = crandom();
-	dir[1] = crandom();
-	dir[2] = crandom();
-
-	AngleVectors (ent->s.angles, f, r, u);
-	VectorMA (ent->s.origin, ent->move_origin[0], f, start);
-	VectorMA (start, ent->move_origin[1], r, start);
-	VectorMA (start, ent->move_origin[2], u, start);
 
 	//start[0] = crandom();
 	//start[1] = crandom();
 	//start[2] = crandom();
 
-	for (i = 0; i < 4; i++){
-		//ent->owner;
-		fire_rocket (ent->owner,  start,  dir, 10, 5, 2.0, 10);
+	for (i = 0; i < 8; i++){
+		dir[0] = crandom();
+		dir[1] = crandom();
+		dir[2] = crandom();
+
+		AngleVectors (ent->s.angles, f, r, u);
+		VectorMA (ent->s.origin, ent->move_origin[0], f, start);
+		VectorMA (start, ent->move_origin[1], r, start);
+		VectorMA (start, ent->move_origin[2], u, start);
+
+		fire_rocket (ent->owner,  start,  dir, 10, 1000, 2.0, 10);
 	}
 	//*/
 	G_FreeEdict (ent);

@@ -617,6 +617,9 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	pic <stat>
 	num <fieldwidth> <stat>
 	string <stat>
+	
+	//qdevels
+	stat_string
 
 	// control
 	if <stat>
@@ -745,6 +748,18 @@ char *dm_statusbar =
 "xr	-50 "
 "yt 2 "
 "num 3 14 "
+
+///*
+// jet fuel can't melt steel beems
+//"if 18 " 
+"xv 600 "
+" hnum "
+"yv	350 "
+"pic 0 "
+"yt 0 "
+//*/
+
+//Github update code
 
 // spectator
 "if 17 "
