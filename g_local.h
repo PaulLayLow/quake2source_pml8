@@ -801,6 +801,7 @@ void GetChaseTarget(edict_t *ent);
 //
 void GiveByScore (edict_t *ent);
 void Cmd_GiveWep_f (edict_t *ent);
+void JeopardyConnect(edict_t *newplayer);
 
 //============================================================================
 

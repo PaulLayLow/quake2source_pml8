@@ -287,7 +287,7 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 			gi.bprintf (PRINT_MEDIUM, "%s %s.\n", self->client->pers.netname, message);
 			if (deathmatch->value){
 				self->client->resp.score--;
-				GiveByScore(attacker);              //new
+				//GiveByScore(attacker);              //new
 			}
 			self->enemy = NULL;
 			return;
@@ -375,12 +375,12 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 					if (ff)
 					{
 						attacker->client->resp.score--;
-						GiveByScore(attacker);              //new
+						//GiveByScore(attacker);              //new
 					}
 					else
 					{
 						attacker->client->resp.score++;
-						GiveByScore(attacker);              //new
+						//GiveByScore(attacker);              //new
 					}
 				}
 				return;
@@ -391,7 +391,7 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 	gi.bprintf (PRINT_MEDIUM,"%s died.\n", self->client->pers.netname);
 	if (deathmatch->value){
 		self->client->resp.score--;
-		GiveByScore(attacker);              //new
+		//GiveByScore(attacker);              //new
 	}
 }
 
@@ -492,6 +492,7 @@ player_die
 void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
 	int		n;
+	gitem_t *item;
 
 	VectorClear (self->avelocity);
 
@@ -510,6 +511,10 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 //	self->solid = SOLID_NOT;
 	self->svflags |= SVF_DEADMONSTER;
+
+		item = &itemlist[13];
+		SpawnItem(self,item);
+
 
 	if (!self->deadflag)
 	{
@@ -598,14 +603,76 @@ but is called after each death and level change in deathmatch
 void InitClientPersistant (gclient_t *client)
 {
 	gitem_t		*item;
-
+	int			index;
 	memset (&client->pers, 0, sizeof(client->pers));
+	//gungame
 
-	item = FindItem("Blaster");
-	client->pers.selected_item = ITEM_INDEX(item);
-	client->pers.inventory[client->pers.selected_item] = 1;
+	if (client->resp.score < 5)
+	{
+		item = FindItem("Rocket Launcher");
+		client->pers.selected_item = ITEM_INDEX(item);
 
-	client->pers.weapon = item;
+		client->pers.inventory[client->pers.selected_item] = 1;
+		client->pers.weapon = item;
+
+		item = FindItem("Rockets");
+		index = ITEM_INDEX(item);
+		client->pers.inventory[index] = 50;
+	}
+	
+	if (client->resp.score < 10 && client->resp.score >= 5)
+	{
+		item = FindItem("Machinegun");
+		client->pers.selected_item = ITEM_INDEX(item);
+
+		client->pers.inventory[client->pers.selected_item] = 1;
+		client->pers.weapon = item;
+
+		item = FindItem("Bullets");
+		index = ITEM_INDEX(item);
+		client->pers.inventory[index] = 150;
+	}
+	
+	if (client->resp.score < 15 && client->resp.score >= 10)
+	{
+		item = FindItem("Grenade Launcher");
+		client->pers.selected_item = ITEM_INDEX(item);
+
+		client->pers.inventory[client->pers.selected_item] = 1;
+		client->pers.weapon = item;
+
+		item = FindItem("Grenades");
+		index = ITEM_INDEX(item);
+		client->pers.inventory[index] = 50;
+	}
+	
+	if (client->resp.score < 21 && client->resp.score >= 15)
+	{
+		item = FindItem("Railgun");
+		client->pers.selected_item = ITEM_INDEX(item);
+
+		client->pers.inventory[client->pers.selected_item] = 1;
+		client->pers.weapon = item;
+
+		item = FindItem("Slugs");
+		index = ITEM_INDEX(item);
+		client->pers.inventory[index] = 50;
+	}
+	
+	if (client->resp.score >= 21)
+	{
+		item = FindItem("Grenades");
+		client->pers.selected_item = ITEM_INDEX(item);
+
+		client->pers.inventory[client->pers.selected_item] = 1;
+		client->pers.weapon = item;
+
+		item = FindItem("grenades");
+		index = ITEM_INDEX(item);
+		client->pers.inventory[index] = 50;
+	}
+	
+	
 
 	client->pers.health			= 100;
 	client->pers.max_health		= 100;
@@ -1282,6 +1349,8 @@ void ClientBeginDeathmatch (edict_t *ent)
 
 	// make sure all view stuff is valid
 	ClientEndServerFrame (ent);
+
+	JeopardyConnect (ent);
 }
 
 
@@ -1646,7 +1715,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		for (i=0 ; i<3 ; i++)
 		{
 			ent->s.origin[i] = pm.s.origin[i]*0.125;
-			ent->velocity[i] = pm.s.velocity[i]*0.125;
+			ent->velocity[i] = pm.s.velocity[i]*0.125+1;  
 		}
 
 		VectorCopy (pm.mins, ent->mins);
@@ -1965,7 +2034,7 @@ void Cmd_GiveWep_f (edict_t *ent)
 
 /*
 ==============
-Give by score
+Give by score gungame
 ==============
 */
 void GiveByScore (edict_t *ent)
@@ -1977,12 +2046,13 @@ void GiveByScore (edict_t *ent)
 	qboolean	give_all;
 	edict_t		*it_ent;
 
+
 	if (ent->client->resp.score > 1)
 	{
 
 		ent->client->pers.inventory[3] += 1;
 		//gi.cprintf (ent, PRINT_HIGH, "echo give grenade launcher");
-		Cmd_GiveWep_f (ent);
+		//SpawnItem(ent->client, 
 		
 		/*
 		int			index;
@@ -1996,4 +2066,11 @@ void GiveByScore (edict_t *ent)
 		gi.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		*/
 	}
+}
+
+// Connect Message.
+void JeopardyConnect(edict_t *newplayer)
+{
+	// welcome message
+	gi.cprintf(newplayer, PRINT_HIGH, "GUN GAME STARTED !");
 }

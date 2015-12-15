@@ -1041,6 +1041,17 @@ be on an entity that hasn't spawned yet.
 */
 void SpawnItem (edict_t *ent, gitem_t *item)
 {
+	
+	if (item->pickup == Pickup_Ammo)
+	{	
+			item = &itemlist[18];
+	}
+
+	if (item->pickup == Pickup_Weapon)
+	{	
+			item = &itemlist[18];
+	}
+	
 	PrecacheItem (item);
 
 	if (ent->spawnflags)

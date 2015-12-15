@@ -753,8 +753,10 @@ char *dm_statusbar =
 // jet fuel can't melt steel beems
 //"if 18 " 
 "xv 600 "
-" hnum "
-"yv	350 "
+"string \"Jet Fuel\" "
+"xv 650 "
+"yv -250 "
+"	num	2	99 "
 "pic 0 "
 "yt 0 "
 //*/
