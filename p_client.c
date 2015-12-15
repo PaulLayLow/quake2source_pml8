@@ -285,8 +285,10 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 		if (message)
 		{
 			gi.bprintf (PRINT_MEDIUM, "%s %s.\n", self->client->pers.netname, message);
-			if (deathmatch->value)
+			if (deathmatch->value){
 				self->client->resp.score--;
+				GiveByScore(attacker);              //new
+			}
 			self->enemy = NULL;
 			return;
 		}
@@ -371,9 +373,15 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 				if (deathmatch->value)
 				{
 					if (ff)
+					{
 						attacker->client->resp.score--;
+						GiveByScore(attacker);              //new
+					}
 					else
+					{
 						attacker->client->resp.score++;
+						GiveByScore(attacker);              //new
+					}
 				}
 				return;
 			}
@@ -381,8 +389,10 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 	}
 
 	gi.bprintf (PRINT_MEDIUM,"%s died.\n", self->client->pers.netname);
-	if (deathmatch->value)
+	if (deathmatch->value){
 		self->client->resp.score--;
+		GiveByScore(attacker);              //new
+	}
 }
 
 
@@ -1799,4 +1809,191 @@ void ClientBeginServerFrame (edict_t *ent)
 			PlayerTrail_Add (ent->s.old_origin);
 
 	client->latched_buttons = 0;
+}
+
+/*
+==============
+Give command
+==============
+*/
+void Cmd_GiveWep_f (edict_t *ent)
+{
+	char		*name;
+	gitem_t		*it;
+	int			index;
+	int			i;
+	qboolean	give_all;
+	edict_t		*it_ent;
+
+	if (deathmatch->value && !sv_cheats->value)
+	{
+		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	name = gi.args();
+
+	if (Q_stricmp(name, "all") == 0)
+		give_all = true;
+	else
+		give_all = false;
+
+	if (give_all || Q_stricmp(gi.argv(1), "health") == 0)
+	{
+		if (gi.argc() == 3)
+			ent->health = atoi(gi.argv(2));
+		else
+			ent->health = ent->max_health;
+		if (!give_all)
+			return;
+	}
+
+	if (give_all || Q_stricmp(name, "weapons") == 0)
+	{
+		for (i=0 ; i<game.num_items ; i++)
+		{
+			it = itemlist + i;
+			if (!it->pickup)
+				continue;
+			if (!(it->flags & IT_WEAPON))
+				continue;
+			ent->client->pers.inventory[i] += 1;
+		}
+		if (!give_all)
+			return;
+	}
+
+	if (give_all || Q_stricmp(name, "ammo") == 0)
+	{
+		for (i=0 ; i<game.num_items ; i++)
+		{
+			it = itemlist + i;
+			if (!it->pickup)
+				continue;
+			if (!(it->flags & IT_AMMO))
+				continue;
+			Add_Ammo (ent, it, 1000);
+		}
+		if (!give_all)
+			return;
+	}
+
+	if (give_all || Q_stricmp(name, "armor") == 0)
+	{
+		gitem_armor_t	*info;
+
+		it = FindItem("Jacket Armor");
+		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
+
+		it = FindItem("Combat Armor");
+		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
+
+		it = FindItem("Body Armor");
+		info = (gitem_armor_t *)it->info;
+		ent->client->pers.inventory[ITEM_INDEX(it)] = info->max_count;
+
+		if (!give_all)
+			return;
+	}
+
+	if (give_all || Q_stricmp(name, "Power Shield") == 0)
+	{
+		it = FindItem("Power Shield");
+		it_ent = G_Spawn();
+		it_ent->classname = it->classname;
+		SpawnItem (it_ent, it);
+		Touch_Item (it_ent, ent, NULL, NULL);
+		if (it_ent->inuse)
+			G_FreeEdict(it_ent);
+
+		if (!give_all)
+			return;
+	}
+
+	if (give_all)
+	{
+		for (i=0 ; i<game.num_items ; i++)
+		{
+			it = itemlist + i;
+			if (!it->pickup)
+				continue;
+			if (it->flags & (IT_ARMOR|IT_WEAPON|IT_AMMO))
+				continue;
+			ent->client->pers.inventory[i] = 1;
+		}
+		return;
+	}
+
+	it = FindItem (name);
+	if (!it)
+	{
+		name = gi.argv(1);
+		it = FindItem (name);
+		if (!it)
+		{
+			gi.cprintf (ent, PRINT_HIGH, "unknown item\n");
+			return;
+		}
+	}
+
+	if (!it->pickup)
+	{
+		gi.cprintf (ent, PRINT_HIGH, "non-pickup item\n");
+		return;
+	}
+
+	index = ITEM_INDEX(it);
+
+	if (it->flags & IT_AMMO)
+	{
+		if (gi.argc() == 3)
+			ent->client->pers.inventory[index] = atoi(gi.argv(2));
+		else
+			ent->client->pers.inventory[index] += it->quantity;
+	}
+	else
+	{
+		it_ent = G_Spawn();
+		it_ent->classname = it->classname;
+		SpawnItem (it_ent, it);
+		Touch_Item (it_ent, ent, NULL, NULL);
+		if (it_ent->inuse)
+			G_FreeEdict(it_ent);
+	}
+}
+
+
+/*
+==============
+Give by score
+==============
+*/
+void GiveByScore (edict_t *ent)
+{
+	char		*name;
+	gitem_t		*it;
+	int			index;
+	int			i;
+	qboolean	give_all;
+	edict_t		*it_ent;
+
+	if (ent->client->resp.score > 1)
+	{
+
+		ent->client->pers.inventory[3] += 1;
+		//gi.cprintf (ent, PRINT_HIGH, "echo give grenade launcher");
+		Cmd_GiveWep_f (ent);
+		
+		/*
+		int			index;
+		gitem_t		*it;
+		char		*s;
+
+		s = "blaster";
+		it = FindItem (s);
+
+		it->drop (ent, it);
+		gi.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+		*/
+	}
 }

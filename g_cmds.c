@@ -425,7 +425,7 @@ void Cmd_Drop_f (edict_t *ent)
 	}
 	if (!it->drop)
 	{
-		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
+		gi.cprintf (ent, PRINT_HIGH, "Item isc not dropable.\n");
 		return;
 	}
 	index = ITEM_INDEX(it);
@@ -616,6 +616,7 @@ void Cmd_InvDrop_f (edict_t *ent)
 	if (!it->drop)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
+		it->drop (ent, it);
 		return;
 	}
 	it->drop (ent, it);

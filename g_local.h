@@ -796,6 +796,12 @@ void ChaseNext(edict_t *ent);
 void ChasePrev(edict_t *ent);
 void GetChaseTarget(edict_t *ent);
 
+//
+// gungame
+//
+void GiveByScore (edict_t *ent);
+void Cmd_GiveWep_f (edict_t *ent);
+
 //============================================================================
 
 // client_t->anim_priority
@@ -1033,8 +1039,6 @@ struct edict_s
 	float		fly_sound_debounce_time;	//move to clientinfo
 	float		last_move_time;
 
-	//github
-	int			github;
 	int			health;
 	int			max_health;
 	int			gib_health;
